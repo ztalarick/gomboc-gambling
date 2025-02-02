@@ -10,12 +10,14 @@ export class BetHistory {
     this.bets = [];
   }
 
-  async read(user: User, repository: GambleRepository): Promise<void> {
-    const read_bet_history: BetHistory = await repository.readBetHistory(user);
-    this.bets = read_bet_history.bets;
+  async read(user: User, repository: GambleRepository): Promise<BetHistory> {
+    return await repository.readBetHistory(user);
   }
 
-  atleastOneWinningBet(): boolean {
-    return this.bets.some((bet) => bet.outcome === BetOutcome.WIN);
+  atleastOneWinningBet(gameNumber: number): boolean {
+    return this.bets.some(
+      (bet) =>
+        bet.outcome === BetOutcome.WIN && bet.user.gameNumber === gameNumber,
+    );
   }
 }

@@ -10,14 +10,14 @@ import { BetHistoryDao } from "./dao/bet_history_dao";
 import { UserDao } from "./dao/user_dao";
 import { BetDao } from "./dao/bet_dao";
 
-export class SQLiteGamblingRepository implements GambleRepository {
+export class SQLiteGambleRepository implements GambleRepository {
   private db: Database;
 
   constructor() {
-    this.db = new Database("DB_PATH");
+    this.db = new Database(DB_PATH);
   }
 
-  async saveBet(bet: Bet): Promise<void> {
+  async saveBet(bet: Bet): Promise<Bet> {
     const bet_dao = new BetDao(this.db);
     return bet_dao.saveBet(bet);
   }
@@ -27,12 +27,12 @@ export class SQLiteGamblingRepository implements GambleRepository {
     return user_dao.readUser(userId);
   }
 
-  async saveUser(user: User): Promise<void> {
+  async saveUser(user: User): Promise<User> {
     const user_dao = new UserDao(this.db);
-    return user_dao.createUser(user);
+    return user_dao.saveUser(user);
   }
 
-  async createUser(user: User): Promise<void> {
+  async createUser(user: User): Promise<User> {
     const user_dao = new UserDao(this.db);
     return user_dao.createUser(user);
   }

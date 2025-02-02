@@ -4,6 +4,7 @@ import {
   MAX_DICE_ROLL,
   WINNINGS_MODIFIER,
 } from "../utils/constants";
+import { InvalidBetException } from "../utils/gamble_exception";
 
 import { User } from "./user";
 
@@ -25,8 +26,9 @@ export class Bet {
   user: User;
   amount: number;
   guess: DiceRoll;
+  roll: DiceRoll;
   outcome: BetOutcome;
-  timestamp: Date;
+  gameNumber: number;
 
   constructor(user: User, amount: number, guess: DiceRoll) {
     this.user = user;
@@ -67,9 +69,22 @@ export class Bet {
     return losses;
   }
 
+  private validateBet(): void {
+    if (this.amount > this.user.balance) {
+      throw new InvalidBetException("Insufficient funds");
+    }
+    if (this.amount < 1) {
+      throw new InvalidBetException("Invalid bet amount");
+    }
+    if (this.guess < MIN_DICE_ROLL || this.guess > MAX_DICE_ROLL) {
+      throw new InvalidBetException("Invalid guess");
+    }
+  }
+
   execute(): number {
+    this.validateBet();
     const roll: DiceRoll = Bet.generateRandomRoll();
-    this.timestamp = new Date();
+    this.roll = roll;
     if (this.isWinningBet(roll)) {
       return this.win();
     } else {
@@ -77,7 +92,9 @@ export class Bet {
     }
   }
 
-  async save(repository: GambleRepository): Promise<void> {
+  async save(repository: GambleRepository): Promise<Bet> {
+    console.log("Saving bet");
+    await this.user.save(repository);
     return repository.saveBet(this);
   }
 }

@@ -7,15 +7,6 @@
 - Run the application in production mode: `npm start`
 
 # TODO
-- Unit Tests
-- Integration Tests?
-- API interface
-- Database Init Script?
-- UI
-- Database interface
-- input validation (UI? and API)
-- Domain bet validation
-    - positive bet
-    - make sure you have enough balance
-    - etc
-- check async / await stuff
+- More Tests
+- Use transactions to ensure no simultaneous editing of database objects
+- Schema validation

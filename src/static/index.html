@@ -7,6 +7,155 @@
 </head>
 <body>
     <h1>Welcome to Gomboc Gambling</h1>
-    <p>Draftkings 2.0</p>
 </body>
 </html>
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        let userId;
+        let balance = 0;
+        let hasWon = false;
+
+        const createUser = async () => {
+            try {
+                const response = await fetch('http://localhost:3000/v1/gamble/user', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ })
+                });
+                const data = await response.json();
+                userId = data.id;
+                balance = data.balance;
+                document.getElementById('balance').innerText = `Balance: $${balance}`;
+            } catch (error) {
+                console.error('Error creating user:', error);
+            }
+        };
+
+        await createUser();
+
+        // Handle bet submission
+        document.getElementById('betForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const amount = Number(document.getElementById('amount').value);
+            const guess = Number(document.getElementById('guess').value);
+
+            try {
+                const response = await fetch('http://localhost:3000/v1/gamble/bet', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ userId, amount, guess })
+                });
+                const data = await response.json();
+                if (response.status === 400) {
+                    alert("Invalid Bet.")
+                    return
+                }
+                console.log("bet data: ", data);
+                const old_balance = balance;
+                balance = data.user.balance;
+                hasWon = data.outcome === 'win';
+                document.getElementById('balance').innerText = `Balance: $${balance}`;
+                if (hasWon) {
+                    alert(`Congratulations! You won $${balance - old_balance}.`);
+                } else {
+                    alert(`Sorry, you lost. Roll was ${data.roll}`);
+                }
+
+                if (balance === 0) {
+                    alert('You have no more money to bet with. Restarting!');
+                    await createUser();
+                    const existingTable = document.querySelector('table');
+                    if (existingTable) {
+                        existingTable.remove();
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error placing bet:', error);
+            }
+        });
+
+        // Handle withdrawal
+        document.getElementById('withdraw').addEventListener('click', async () => {
+
+            try {
+                const response = await fetch(`http://localhost:3000/v1/gamble/user/${userId}/withdraw`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                });
+                const data = await response.json();
+                if (response.status === 400) {
+                    alert('Must win at least once to withdraw.');
+                    return;
+                }
+                balance = data.balance;
+                document.getElementById('balance').innerText = `Balance: $${balance}`;
+
+                alert("Withdrawal successful.");
+            } catch (error) {
+                console.error('Error withdrawing balance:', error);
+            }
+        });
+
+        // Handle history
+        document.getElementById('history').addEventListener('click', async () => {
+            try {
+                const existingTable = document.querySelector('table');
+                if (existingTable) {
+                    existingTable.remove();
+                }
+                const response = await fetch(`http://localhost:3000/v1/gamble/user/${userId}/history`, {
+                    method: 'GET'
+                });
+                const data = await response.json();
+                
+                const historyTable = document.createElement('table');
+                historyTable.innerHTML = `
+                    <tr>
+                        <th>Game Number</th>
+                        <th>Amount</th>
+                        <th>Guess</th>
+                        <th>Outcome</th>
+                    </tr>
+                `;
+
+                data.bets.forEach(bet => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${bet.user.gameNumber}</td>
+                        <td>${bet.amount}</td>
+                        <td>${bet.guess}</td>
+                        <td>${bet.outcome}</td>
+                    `;
+                    historyTable.appendChild(row);
+                });
+
+                document.body.appendChild(historyTable);
+
+
+            } catch (error) {
+                console.error('Error fetching history:', error);
+            }
+        });
+    });
+</script>
+
+<div>
+    <p id="balance">Balance: $0</p>
+    <form id="betForm">
+        <label for="amount">Bet Amount:</label>
+        <input type="number" id="amount" name="amount" required>
+        <label for="guess">Dice Number (1-6):</label>
+        <input type="number" id="guess" name="guess" min="1" max="6" required>
+        <button type="submit">Submit Bet</button>
+    </form>
+    <button id="withdraw">Withdraw</button>
+    <button id="history">History</button>
+</div>

@@ -2,38 +2,35 @@ import { GambleRepository } from "../ports/out/gamble_repository";
 import { STARTING_BALANCE } from "../utils/constants";
 import { WithdrawGambleException } from "../utils/gamble_exception";
 
-import { BetHistory } from "./bet_history";
-
 export class User {
   id: string | null;
   balance: number;
-  game_number: number;
-  bet_history: BetHistory;
+  gameNumber: number;
 
   constructor() {
     this.id = null;
     this.balance = STARTING_BALANCE;
+    this.gameNumber = 1;
   }
 
-  private ableToWithdraw(repository: GambleRepository): boolean {
-    this.bet_history = new BetHistory();
-    this.bet_history.read(this, repository);
-    return this.bet_history.atleastOneWinningBet();
+  private async ableToWithdraw(repository: GambleRepository): Promise<boolean> {
+    const bet_history = await repository.readBetHistory(this);
+    return bet_history.atleastOneWinningBet(this.gameNumber);
   }
 
-  withdraw(repository: GambleRepository): void {
-    if (!this.ableToWithdraw(repository)) {
-      throw new WithdrawGambleException("User has no winning bets.");
+  async withdraw(repository: GambleRepository): Promise<void> {
+    if (!(await this.ableToWithdraw(repository))) {
+      throw new WithdrawGambleException("User has no winning bets");
     }
     this.balance = STARTING_BALANCE;
-    this.game_number += 1;
+    this.gameNumber += 1;
   }
 
-  async save(repository: GambleRepository): Promise<void> {
+  async save(repository: GambleRepository): Promise<User> {
     return repository.saveUser(this);
   }
 
-  async create(repository: GambleRepository): Promise<void> {
+  async create(repository: GambleRepository): Promise<User> {
     return repository.createUser(this);
   }
 

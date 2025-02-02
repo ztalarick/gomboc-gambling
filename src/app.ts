@@ -6,6 +6,7 @@ function main(): void {
   try {
     const init_db = new InitializeDB(DB_PATH);
     init_db.createTables();
+    init_db.close();
 
     const server = new Server();
     server.start(PORT);

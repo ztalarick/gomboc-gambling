@@ -17,7 +17,10 @@ export class InitializeDB {
     const createUserTable = `
             CREATE TABLE IF NOT EXISTS User (
                 userId INTEGER PRIMARY KEY AUTOINCREMENT,
-                balance REAL NOT NULL DEFAULT 1000
+                balance REAL NOT NULL DEFAULT 1000,
+                gameNumber INTEGER NOT NULL DEFAULT 1,
+                createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
             );
         `;
 
@@ -26,8 +29,12 @@ export class InitializeDB {
                 betId INTEGER PRIMARY KEY AUTOINCREMENT,
                 userId INTEGER,
                 amount REAL NOT NULL,
+                guess INTEGER NOT NULL,
                 outcome TEXT NOT NULL,
+                gameNumber INTEGER NOT NULL,
+                balance REAL NOT NULL,
                 createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (userId) REFERENCES User(userId)
             );
         `;

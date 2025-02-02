@@ -8,25 +8,26 @@ export class BetDao {
     this.db = db;
   }
 
-  async saveBet(bet: Bet): Promise<void> {
-    // const query = `
-    //     INSERT INTO bets (user_id, amount, guess, outcome, timestamp)
-    //     VALUES (?, ?, ?, ?, ?)
-    // `;
-    // const params = [
-    //     bet.user.id,
-    //     bet.amount,
-    //     bet.guess,
-    //     bet.outcome,
-    //     bet.timestamp.toISOString(),
-    // ];
-    // return new Promise((resolve, reject) => {
-    //     this.db.run(query, params, function (err) {
-    //         if (err) {
-    //             return reject(err);
-    //         }
-    //         resolve();
-    //     });
-    // });
+  async saveBet(bet: Bet): Promise<Bet> {
+    const query = `
+        INSERT INTO Bet (userId, amount, guess, outcome, gameNumber, balance)
+        VALUES (?, ?, ?, ?, ?, ?)
+    `;
+    const params = [
+      bet.user.id,
+      bet.amount,
+      bet.guess,
+      bet.outcome,
+      bet.user.gameNumber,
+      bet.user.balance,
+    ];
+    return new Promise((resolve, reject) => {
+      this.db.run(query, params, function (err) {
+        if (err) {
+          return reject(err);
+        }
+        resolve(bet);
+      });
+    });
   }
 }
