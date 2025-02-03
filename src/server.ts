@@ -1,9 +1,9 @@
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const Fastify = require("fastify"); //idk why this only works with require
+import Fastify from "fastify";
 import { FastifyReply, FastifyRequest } from "fastify";
 import path from "path";
 import cors from "@fastify/cors";
 import fastifyStatic from "@fastify/static";
+import Ajv from "ajv";
 
 import {
   GambleException,
@@ -16,11 +16,16 @@ import { RestGambleService } from "./adapters/rest/rest_gamble_service";
 
 export class Server {
   private server = Fastify({ logger: true });
+  private ajv = new Ajv({ allErrors: true });
+
   private gambleService: RestGambleService = new RestGambleService(
     new SQLiteGambleRepository(),
   );
 
   constructor() {
+    this.server.setValidatorCompiler(({ schema }: { schema: object }) =>
+      this.ajv.compile(schema),
+    );
     this.server.register(cors);
     this.setupStaticFiles();
     this.setupRoutes();
@@ -28,7 +33,7 @@ export class Server {
 
   private setupStaticFiles() {
     this.server.register(fastifyStatic, {
-      root: path.join(__dirname, "static"),
+      root: path.join(__dirname, "../static"),
       prefix: "/",
     });
   }
