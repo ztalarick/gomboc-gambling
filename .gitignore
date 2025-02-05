@@ -31,7 +31,6 @@ jspm_packages/
 # Output directories
 dist/
 build/
-out/
 
 # IDEs and editors
 .vscode/
